@@ -41,9 +41,12 @@ public class GameManager : MonoBehaviour
 	{
 		for (int i = 0; i < Options.FieldSize.X; ++i) {
 			for (int j = 0; j < Options.FieldSize.Y; ++j) {
-				DestroyObject(cells[i, j]);
 				cells[i, j] = null;
 			}
+		}
+
+		foreach (Transform c in Field.transform) {
+			Destroy(c.gameObject);
 		}
 
 		IsGameRunning = false;
