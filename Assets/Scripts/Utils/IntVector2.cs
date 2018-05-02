@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.Utils
+﻿using UnityEngine;
+
+namespace Assets.Scripts.Utils
 {
 	public struct IntVector2
 	{
@@ -21,6 +23,11 @@
 		public static IntVector2 operator +(IntVector2 lhs, IntVector2 rhs)
 		{
 			return new IntVector2(lhs.X + rhs.X, lhs.Y + rhs.Y);
+		}
+
+		public static explicit operator Vector2(IntVector2 v)
+		{
+			return new Vector2(v.X, v.Y);
 		}
 	}
 }

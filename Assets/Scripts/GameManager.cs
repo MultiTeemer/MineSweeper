@@ -10,7 +10,6 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-	public RectTransform FieldOrigin;
 	public Text Timer;
 	public Text Bombs;
 	public GameObject CellPrefab;
@@ -71,14 +70,16 @@ public class GameManager : MonoBehaviour
 			bombPositions.Add(c);
 		}
 
-		var cellSize = CellPrefab.GetComponent<RectTransform>().sizeDelta;
+		var cellSize = Vector2Extensions.Multiply(CellPrefab.GetComponent<RectTransform>().sizeDelta, CellPrefab.GetComponent<RectTransform>().localScale);
+		var wholeFieldSize = new Vector2(cellSize.x * Options.FieldSize.X, cellSize.y * Options.FieldSize.Y);
+		var shift = new Vector3(-wholeFieldSize.x, -wholeFieldSize.y) / 2;
 		for (int i = 0; i < size.X; ++i) {
 			for (int j = 0; j < size.Y; ++j) {
 				var c = new IntVector2(i, j);
 				var content = bombPositions.Contains(c) ? CellContent.Bomb : CellContent.FreeSpace;
 
 				var cellObj = Object.Instantiate(CellPrefab, Field.transform);
-				cellObj.transform.localPosition = new Vector3(i * cellSize.x, j * cellSize.y);
+				cellObj.transform.localPosition = shift + new Vector3(i * cellSize.x, j * cellSize.y);
 
 				var cell = cellObj.GetComponent<Cell>();
 				cells[i, j] = cell;
