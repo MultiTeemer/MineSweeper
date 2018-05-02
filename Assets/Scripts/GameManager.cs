@@ -105,10 +105,9 @@ public class GameManager : MonoBehaviour
 		var cell = cells[c.X, c.Y];
 		if (cell.Component.VisualState == VisualState.Closed) {
 			if (cell.Component.Content == CellContent.Bomb) {
-				cell.MakeBgRed();
-				cell.Component.VisualState = VisualState.Opened;
+				LoseGame(cell);
 			} else if (CalcBombsNearbyCount(c) > 0) {
-				cell.Component.VisualState = VisualState.Opened;
+				cell.Open();
 			} else {
 				OpenSafeArea(c);
 			}
@@ -131,6 +130,27 @@ public class GameManager : MonoBehaviour
 				--MarksSet;
 			}
 		}
+	}
+
+	private void LoseGame(Cell failReason)
+	{
+		foreach (var cell in cells) {
+			if (cell == failReason) {
+				cell.MakeBgRed();
+			}
+
+			if (cell.Component.Content == CellContent.Bomb && cell.Component.VisualState == VisualState.Closed) {
+				cell.Open();
+			}
+
+			if (cell.Component.Content == CellContent.FreeSpace && cell.Component.Marked) {
+				cell.ShowMistakenMark();
+			}
+
+			cell.UpdateAppearance();
+		}
+
+		IsGameRunning = false;
 	}
 
 	private int CalcBombsNearbyCount(IntVector2 c)
@@ -161,7 +181,11 @@ public class GameManager : MonoBehaviour
 
 		Action<IntVector2> pushIfSafe = (v) => {
 			var cell = GetCell(v);
-			if (cell != null && cell.Component.Content == CellContent.FreeSpace && cell.Component.VisualState == VisualState.Closed) {
+			if (
+				cell != null
+				&& cell.Component.Content == CellContent.FreeSpace
+				&& cell.Component.VisualState == VisualState.Closed
+			) {
 				cellsQueue.Enqueue(v);
 			}
 		};
@@ -174,7 +198,7 @@ public class GameManager : MonoBehaviour
 		while (cellsQueue.Count > 0) {
 			var currCoord = cellsQueue.Dequeue();
 			var cell = GetCell(currCoord);
-			cell.Component.VisualState = VisualState.Opened;
+			cell.Open();
 			cell.UpdateAppearance();
 
 			if (CalcBombsNearbyCount(currCoord) == 0) {

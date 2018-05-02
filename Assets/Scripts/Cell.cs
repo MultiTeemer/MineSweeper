@@ -65,13 +65,15 @@ namespace Assets.Scripts
 			gameObject.Get("Mark").SetActive(Component.Marked);
 		}
 
+		public void ShowMistakenMark()
+		{
+			gameObject.Get("Bomb").SetActive(true);
+			gameObject.Get("Cross").SetActive(true);
+		}
+
 		public void Open()
 		{
 			Component.VisualState = VisualState.Opened;
-
-			if (Component.Content == CellContent.Bomb) {
-				MakeBgRed();
-			}
 		}
 
 		public void UpdateAppearance()
