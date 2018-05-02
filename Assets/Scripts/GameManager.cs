@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Assets.Scripts;
+using Assets.Scripts.GameManagerStuff;
 using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,46 +10,32 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-	public Canvas MainCanvas;
-	public Canvas GameCanvas;
 	public RectTransform FieldOrigin;
 	public Text Timer;
 	public Text Bombs;
-
 	public GameObject CellPrefab;
+	public GameObject Field;
 
 	private Cell[,] cells;
-	private GameObject field;
+	private GameOptions options;
 
-	public void StartGame()
+	public static GameManager Instance { get; private set; }
+
+	public void StartGame(GameOptions options)
 	{
-		SetMainCanvasActive(false);
-		SetGameCanvasActive(true);
-		
-		InitField(new IntVector2(10, 10), 10);
+		this.options = options;
+
+		InitField(options.FieldSize, options.BombsCount);
 	}
 
-	private void Start()
+	public void StopGame()
 	{
-		field = GameCanvas.gameObject.Get("Field");
-
-		SetMainCanvasActive(true);
-		SetGameCanvasActive(false);
-	}
-
-	private void Update()
-	{
-		
-	}
-
-	private void SetMainCanvasActive(bool value)
-	{
-		MainCanvas.gameObject.SetActive(value);
-	}
-
-	private void SetGameCanvasActive(bool value)
-	{
-		GameCanvas.gameObject.SetActive(value);
+		for (int i = 0; i < options.FieldSize.X; ++i) {
+			for (int j = 0; j < options.FieldSize.Y; ++j) {
+				DestroyObject(cells[i, j]);
+				cells[i, j] = null;
+			}
+		}
 	}
 
 	private void InitField(IntVector2 size, int bombsCount)
@@ -71,7 +58,7 @@ public class GameManager : MonoBehaviour
 				var c = new IntVector2(i, j);
 				var content = bombPositions.Contains(c) ? CellContent.Bomb : CellContent.FreeSpace;
 
-				var cellObj = Object.Instantiate(CellPrefab, field.transform);
+				var cellObj = Object.Instantiate(CellPrefab, Field.transform);
 				cellObj.transform.localPosition = new Vector3(i * cellSize.x, j * cellSize.y);
 
 				var cell = cellObj.GetComponent<Cell>();
@@ -173,5 +160,15 @@ public class GameManager : MonoBehaviour
 				&& c.Y < cells.GetLength(1)
 			? cells[c.X, c.Y]
 			: null;
+	}
+
+	private void Awake()
+	{
+		if (Instance != null && Instance != this) {
+			Destroy(Instance);
+			return;
+		}
+
+		Instance = this;
 	}
 }

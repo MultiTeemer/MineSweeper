@@ -1,6 +1,6 @@
 ﻿namespace Assets.Scripts.Utils
 {
-	struct IntVector2
+	public struct IntVector2
 	{
 		public readonly int X;
 
@@ -10,6 +10,12 @@
 		{
 			X = x;
 			Y = y;
+		}
+
+		public IntVector2(int val)
+		{
+			X = val;
+			Y = val;
 		}
 
 		public static IntVector2 operator +(IntVector2 lhs, IntVector2 rhs)
