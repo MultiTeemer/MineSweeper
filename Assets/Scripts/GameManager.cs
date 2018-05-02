@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
 		for (int i = 0; i < size.X; ++i) {
 			for (int j = 0; j < size.Y; j++) {
 				var bombsCountNearby = CalcBombsNearbyCount(new IntVector2(i, j));
-				cells[i, j].SetText(bombsCountNearby == 0 ? "0" : bombsCountNearby.ToString());
+				cells[i, j].SetNearbyBombsCounter(bombsCountNearby);
 			}
 		}
 	}
@@ -112,10 +112,7 @@ public class GameManager : MonoBehaviour
 	{
 		Func<int, int, int> bombValue = (x, y) => {
 			var cell = GetCell(new IntVector2(x, y));
-
-			return cell != null && cell.Component.Content == CellContent.Bomb
-				? 1
-				: 0;
+			return Convert.ToInt32(cell != null && cell.Component.Content == CellContent.Bomb);
 		};
 
 		int i = c.X;

@@ -46,9 +46,11 @@ namespace Assets.Scripts
 			UpdateAppearance();
 		}
 
-		public void SetText(string text)
+		public void SetNearbyBombsCounter(int count)
 		{
-			gameObject.Get<Text>("Counter").text = text;
+			var text = gameObject.Get<Text>("Counter");
+			text.color = GetColorForCounter(count);
+			text.text = count.ToString();
 		}
 
 		public void MakeBgRed()
@@ -81,6 +83,15 @@ namespace Assets.Scripts
 			}
 		}
 
+		public void OnPointerClick(PointerEventData eventData)
+		{
+			if (eventData.button == PointerEventData.InputButton.Left) {
+				LeftClick.SafeInvoke();
+			} else if (eventData.button == PointerEventData.InputButton.Right) {
+				RightClick.SafeInvoke();
+			}
+		}
+
 		private void CustomizeOpenedCell()
 		{
 			if (Component.Content == CellContent.Bomb) {
@@ -97,12 +108,17 @@ namespace Assets.Scripts
 			gameObject.Get("Mark").SetActive(Component.Marked);
 		}
 
-		public void OnPointerClick(PointerEventData eventData)
+		private static Color GetColorForCounter(int count)
 		{
-			if (eventData.button == PointerEventData.InputButton.Left) {
-				LeftClick.SafeInvoke();
-			} else if (eventData.button == PointerEventData.InputButton.Right) {
-				RightClick.SafeInvoke();
+			switch (count) {
+				case 1:
+					return Color.blue;
+				case 2:
+					return Color.green;
+				case 3:
+					return Color.red;
+				default:
+					return Color.magenta;
 			}
 		}
 	}
