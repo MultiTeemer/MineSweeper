@@ -122,13 +122,14 @@ public class GameManager : MonoBehaviour
 		if (!IsGameRunning) return;
 
 		var cell = cells[c.X, c.Y];
-
-		if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
-			++MarksSet;
-			cell.ToggleMark();
-		} else if (cell.Component.Marked) {
-			cell.ToggleMark();
-			--MarksSet;
+		if (cell.Component.VisualState == VisualState.Closed) {
+			if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
+				++MarksSet;
+				cell.ToggleMark();
+			} else if (cell.Component.Marked) {
+				cell.ToggleMark();
+				--MarksSet;
+			}
 		}
 	}
 
