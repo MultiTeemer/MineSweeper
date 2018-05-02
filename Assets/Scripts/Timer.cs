@@ -11,12 +11,18 @@ public class Timer : MonoBehaviour
 	private void Start()
 	{
 		text = GetComponent<Text>();
-		timePassed = Time.deltaTime;
+	}
+
+	private void OnEnable()
+	{
+		timePassed = 0;
 	}
 	
 	private void Update()
 	{
-		timePassed += Time.deltaTime;
-		text.text = TimeSpan.FromSeconds(timePassed).ToString();
+		if (GameManager.Instance.IsGameRunning) {
+			timePassed += Time.deltaTime;
+			text.text = TimeSpan.FromSeconds(timePassed).ToString();
+		}
 	}
 }
