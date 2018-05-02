@@ -16,26 +16,37 @@ public class GameManager : MonoBehaviour
 	public GameObject CellPrefab;
 	public GameObject Field;
 
+	[HideInInspector]
+	public GameOptions Options;
+
+	[HideInInspector]
+	public bool IsGameRunning;
+
+	[HideInInspector]
+	public int MarksSet;
+
 	private Cell[,] cells;
-	private GameOptions options;
 
 	public static GameManager Instance { get; private set; }
 
 	public void StartGame(GameOptions options)
 	{
-		this.options = options;
+		Options = options;
+		IsGameRunning = true;
 
 		InitField(options.FieldSize, options.BombsCount);
 	}
 
 	public void StopGame()
 	{
-		for (int i = 0; i < options.FieldSize.X; ++i) {
-			for (int j = 0; j < options.FieldSize.Y; ++j) {
+		for (int i = 0; i < Options.FieldSize.X; ++i) {
+			for (int j = 0; j < Options.FieldSize.Y; ++j) {
 				DestroyObject(cells[i, j]);
 				cells[i, j] = null;
 			}
 		}
+
+		IsGameRunning = false;
 	}
 
 	private void InitField(IntVector2 size, int bombsCount)
@@ -80,6 +91,8 @@ public class GameManager : MonoBehaviour
 
 	private void CellLeftClick(IntVector2 c)
 	{
+		if (!IsGameRunning) return;
+
 		var cell = cells[c.X, c.Y];
 		if (cell.Component.VisualState == VisualState.Closed) {
 			if (cell.Component.Content == CellContent.Bomb) {
@@ -92,6 +105,21 @@ public class GameManager : MonoBehaviour
 			}
 
 			cell.UpdateAppearance();
+		}
+	}
+
+	private void CellRightClick(IntVector2 c)
+	{
+		if (!IsGameRunning) return;
+
+		var cell = cells[c.X, c.Y];
+
+		if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
+			++MarksSet;
+			cell.ToggleMark();
+		} else if (cell.Component.Marked) {
+			cell.ToggleMark();
+			--MarksSet;
 		}
 	}
 
@@ -114,11 +142,6 @@ public class GameManager : MonoBehaviour
 			+ bombValue(i + 1, j + 1);
 
 		return bombsCountNearby;
-	}
-
-	private void CellRightClick(IntVector2 c)
-	{
-		cells[c.X, c.Y].ToggleMark();
 	}
 
 	private void OpenSafeArea(IntVector2 c)
