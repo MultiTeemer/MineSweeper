@@ -52,6 +52,11 @@ public class GameManager : MonoBehaviour
 		IsGameRunning = false;
 	}
 
+	public void QuitGame()
+	{
+		Application.Quit();
+	}
+
 	private void InitField(IntVector2 size, int bombsCount)
 	{
 		cells = new Cell[size.X, size.Y];
@@ -196,5 +201,12 @@ public class GameManager : MonoBehaviour
 		}
 
 		Instance = this;
+	}
+
+	private void Update()
+	{
+		if (Input.GetKey(KeyCode.Escape)) {
+			QuitGame();
+		}
 	}
 }
