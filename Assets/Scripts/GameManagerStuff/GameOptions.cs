@@ -1,8 +1,9 @@
-﻿using Assets.Scripts.Utils;
+﻿using System;
 using UnityEngine;
 
 namespace Assets.Scripts.GameManagerStuff
 {
+	[Serializable]
 	public struct GameOptions
 	{
 		public Vector2Int FieldSize;

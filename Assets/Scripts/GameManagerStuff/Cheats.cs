@@ -13,7 +13,7 @@ namespace Assets.Scripts.GameManagerStuff
 			var safeCells = new List<Vector2Int>(opts.BombsCount);
 			for (int i = 0; i < opts.FieldSize.x; ++i) {
 				for (int j = 0; j < opts.FieldSize.y; ++j) {
-					if (!cells[i, j].Component.Bomb) {
+					if (!cells[i, j].Data.Bomb) {
 						safeCells.Add(new Vector2Int(i, j));
 					}
 				}
@@ -26,10 +26,10 @@ namespace Assets.Scripts.GameManagerStuff
 					cell.SetMarked(false);
 
 					if (i == lastSafeCell.x && j == lastSafeCell.y) {
-						cell.Component.Opened = false;
+						cell.Data.Opened = false;
 						cell.SetMarked(false);
 					} else {
-						if (cell.Component.Bomb) {
+						if (cell.Data.Bomb) {
 							cell.SetMarked(true);
 						} else {
 							cell.Open();
@@ -40,7 +40,7 @@ namespace Assets.Scripts.GameManagerStuff
 				}
 			}
 
-			GameManager.Instance.MarksSet = opts.BombsCount;
+			GameManager.Instance.CellsMarked = opts.BombsCount;
 			GameManager.Instance.CellsOpened = opts.FieldSize.x * opts.FieldSize.y - opts.BombsCount - 1;
 		}
 	}

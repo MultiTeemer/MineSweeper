@@ -15,7 +15,7 @@ public class MarksCounter : MonoBehaviour
 	{
 		var gm = GameManager.Instance;
 		if (gm.IsGameRunning) {
-			var count = gm.Options.BombsCount - gm.MarksSet;
+			var count = gm.Options.BombsCount - gm.CellsMarked;
 			field.text = count.ToString();
 		}
 	}

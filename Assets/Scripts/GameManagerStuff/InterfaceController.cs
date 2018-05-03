@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Utils;
+﻿using System.Net.NetworkInformation;
+using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,9 +7,12 @@ namespace Assets.Scripts.GameManagerStuff
 {
 	public class InterfaceController : MonoBehaviour
 	{
+		public GameObject SavedGamePrefab;
+
 		public Canvas MainMenuCanvas;
 		public Canvas GameCanvas;
 		public Canvas ChooseGameModeCanvas;
+		public Canvas LoadGameCanvas;
 
 		private Canvas currentActiveCanvas;
 
@@ -60,15 +64,54 @@ namespace Assets.Scripts.GameManagerStuff
 			SwitchTo(MainMenuCanvas);
 		}
 
+		public void SaveBtnClicked()
+		{
+			GameManager.Instance.SaveGame();
+		}
+
+		public void LoadGameBtnClicked()
+		{
+			SwitchTo(LoadGameCanvas);
+
+			InitSavedGamesList();
+		}
+
+		private void InitSavedGamesList()
+		{
+			var scrollView = LoadGameCanvas.gameObject.Get<RectTransform>("SavedGames");
+			foreach (Transform c in scrollView.transform) {
+				Destroy(c.gameObject);
+			}
+
+			var saves = LoadSaveSystem.GetSavedGames();
+			var cnt = 0;
+			var size = SavedGamePrefab.GetComponent<RectTransform>().sizeDelta;
+			foreach (var path in saves) {
+				var btn = Object.Instantiate(SavedGamePrefab, scrollView.transform);
+				btn.Get<Text>("Text").text = path;
+				btn.transform.localPosition = new Vector3(0, -cnt++ * size.y);
+				var locPath = path;
+				btn.GetComponent<Button>().onClick.AddListener(() => {
+					GameManager.Instance.LoadGame(locPath);
+					ShowGameCanvas();
+				});
+			}
+		}
+
 		private void StartGame(GameOptions options)
+		{
+			ShowGameCanvas();
+
+			GameManager.Instance.StartGame(options);
+		}
+
+		private void ShowGameCanvas()
 		{
 			SwitchTo(GameCanvas);
 
 			GameCanvas.gameObject.Get<Button>("SaveGameBtn").interactable = true;
 			GameCanvas.gameObject.Get("WinMessage").SetActive(false);
 			GameCanvas.gameObject.Get("LoseMessage").SetActive(false);
-
-			GameManager.Instance.StartGame(options);
 		}
 
 		private void SwitchTo(Canvas canvas)
@@ -96,6 +139,7 @@ namespace Assets.Scripts.GameManagerStuff
 		{
 			HideCanvas(GameCanvas);
 			HideCanvas(ChooseGameModeCanvas);
+			HideCanvas(LoadGameCanvas);
 
 			ShowCanvas(MainMenuCanvas);
 

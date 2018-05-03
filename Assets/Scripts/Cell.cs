@@ -6,13 +6,14 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
-	class CellComponent
+	[Serializable]
+	public class CellData
 	{
 		public bool Bomb;
 		public bool Opened;
 		public bool Marked;
 
-		public CellComponent(bool bomb, bool opened, bool marked)
+		public CellData(bool bomb, bool opened, bool marked)
 		{
 			Bomb = bomb;
 			Opened = opened;
@@ -22,15 +23,15 @@ namespace Assets.Scripts
 
 	class Cell : MonoBehaviour, IPointerClickHandler
 	{
-		public CellComponent Component;
+		public CellData Data;
 
 		public event Action LeftClick;
 		public event Action RightClick;
 		public event Action Opened;
 
-		public void Init(CellComponent component)
+		public void Init(CellData data)
 		{
-			Component = component;
+			Data = data;
 
 			UpdateAppearance();
 		}
@@ -49,7 +50,7 @@ namespace Assets.Scripts
 
 		public void SetMarked(bool value)
 		{
-			Component.Marked = value;
+			Data.Marked = value;
 
 			gameObject.Get("Mark").SetActive(value);
 		}
@@ -62,14 +63,14 @@ namespace Assets.Scripts
 
 		public void Open()
 		{
-			Component.Opened = true;;
+			Data.Opened = true;;
 
 			Opened.SafeInvoke();
 		}
 
 		public void UpdateAppearance()
 		{
-			if (Component.Opened) {
+			if (Data.Opened) {
 				CustomizeOpenedCell();
 			} else {
 				CustomizedClosedCell();
@@ -87,7 +88,7 @@ namespace Assets.Scripts
 
 		private void CustomizeOpenedCell()
 		{
-			if (Component.Bomb) {
+			if (Data.Bomb) {
 				gameObject.Get("Bomb").SetActive(true);
 			} else {
 				gameObject.Get("Counter").SetActive(true);
@@ -98,7 +99,7 @@ namespace Assets.Scripts
 
 		private void CustomizedClosedCell()
 		{
-			gameObject.Get("Mark").SetActive(Component.Marked);
+			gameObject.Get("Mark").SetActive(Data.Marked);
 			gameObject.Get("Counter").SetActive(false);
 			gameObject.Get("Bomb").SetActive(false);
 		}

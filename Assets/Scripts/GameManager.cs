@@ -8,6 +8,25 @@ using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
+[Serializable]
+public class GameSessionData
+{
+	public GameOptions Options;
+	public CellData[] Cells;
+
+	public GameSessionData(GameOptions options, CellData[,] cells)
+	{
+		Options = options;
+
+		Cells = new CellData[options.FieldSize.x * options.FieldSize.y];
+		for (int i = 0; i < options.FieldSize.x; ++i) {
+			for (int j = 0; j < options.FieldSize.y; ++j) {
+				Cells[i * options.FieldSize.x + j] = cells[i, j];
+			}
+		}
+	}
+}
+
 public class GameManager : MonoBehaviour
 {
 	public Text Timer;
@@ -22,7 +41,7 @@ public class GameManager : MonoBehaviour
 	public bool IsGameRunning;
 
 	[HideInInspector]
-	public int MarksSet;
+	public int CellsMarked;
 
 	[HideInInspector]
 	public int CellsOpened;
@@ -38,10 +57,12 @@ public class GameManager : MonoBehaviour
 	{
 		Options = options;
 		IsGameRunning = true;
-		MarksSet = 0;
+		CellsMarked = 0;
 		CellsOpened = 0;
 
-		InitField(options.FieldSize, options.BombsCount);
+		InitField(options.FieldSize);
+		PlaceBombs(options.BombsCount);
+		UpdateBombCounters();
 	}
 
 	public void StopGame()
@@ -64,19 +85,50 @@ public class GameManager : MonoBehaviour
 		Application.Quit();
 	}
 
-	private void InitField(Vector2Int size, int bombsCount)
+	public void SaveGame()
+	{
+		var fieldState = new CellData[Options.FieldSize.x, Options.FieldSize.y];
+		for (int i = 0; i < Options.FieldSize.x; ++i) {
+			for (int j = 0; j < Options.FieldSize.y; ++j) {
+				fieldState[i, j] = cells[i, j].Data;
+			}
+		}
+		LoadSaveSystem.Save(new GameSessionData(Options, fieldState));
+	}
+
+	public void LoadGame(string path)
+	{
+		var data = LoadSaveSystem.Load(path);
+		if (data != null) {
+			Options = data.Options;
+			InitField(Options.FieldSize);
+
+			CellsMarked = 0;
+			CellsOpened = 0;
+			for (int i = 0; i < Options.FieldSize.x; ++i) {
+				for (int j = 0; j < Options.FieldSize.y; ++j) {
+					var cell = cells[i, j];
+
+					cell.Init(data.Cells[i * Options.FieldSize.x + j]);
+
+					if (cell.Data.Marked) {
+						++CellsMarked;
+					}
+					if (cell.Data.Opened) {
+						++CellsOpened;
+					}
+				}
+			}
+
+			UpdateBombCounters();
+
+			IsGameRunning = true;
+		}
+	}
+
+	private void InitField(Vector2Int size)
 	{
 		cells = new Cell[size.x, size.y];
-
-		var bombPositions = new List<Vector2Int>(bombsCount);
-		for (int i = 0; i < bombsCount; ++i) {
-			Func<Vector2Int> getRandomPos = () => new Vector2Int(Random.Range(0, size.x), Random.Range(0, size.y));
-			var c = getRandomPos();
-			while (bombPositions.Contains(c)) {
-				c = getRandomPos();
-			}
-			bombPositions.Add(c);
-		}
 
 		var cellSize = Vector2Extensions.Multiply(CellPrefab.GetComponent<RectTransform>().sizeDelta, CellPrefab.GetComponent<RectTransform>().localScale);
 		var wholeFieldSize = new Vector2(cellSize.x * Options.FieldSize.x, cellSize.y * Options.FieldSize.y);
@@ -84,7 +136,6 @@ public class GameManager : MonoBehaviour
 		for (int i = 0; i < size.x; ++i) {
 			for (int j = 0; j < size.y; ++j) {
 				var c = new Vector2Int(i, j);
-				var bomb = bombPositions.Contains(c);
 
 				var cellObj = Object.Instantiate(CellPrefab, Field.transform);
 				cellObj.transform.localPosition = shift + new Vector3(i * cellSize.x, j * cellSize.y);
@@ -92,15 +143,32 @@ public class GameManager : MonoBehaviour
 				var cell = cellObj.GetComponent<Cell>();
 				cells[i, j] = cell;
 
-				cell.Init(new CellComponent(bomb, false, false));
+				cell.Init(new CellData(false, false, false));
 				cell.LeftClick += () => CellLeftClick(c);
 				cell.RightClick += () => CellRightClick(c);
 				cell.Opened += OnCellOpened;
 			}
 		}
+	}
 
-		for (int i = 0; i < size.x; ++i) {
-			for (int j = 0; j < size.y; j++) {
+	private void PlaceBombs(int bombsCount)
+	{
+		var size = Options.FieldSize;
+
+		for (int i = 0; i < bombsCount; ++i) {
+			Func<Vector2Int> getRandomPos = () => new Vector2Int(Random.Range(0, size.x), Random.Range(0, size.y));
+			var c = getRandomPos();
+			while (cells[c.x, c.y].Data.Bomb) {
+				c = getRandomPos();
+			}
+			cells[c.x, c.y].Data.Bomb = true;
+		}
+	}
+
+	private void UpdateBombCounters()
+	{
+		for (int i = 0; i < Options.FieldSize.x; ++i) {
+			for (int j = 0; j < Options.FieldSize.y; j++) {
 				var bombsCountNearby = CalcBombsNearbyCount(new Vector2Int(i, j));
 				cells[i, j].SetNearbyBombsCounter(bombsCountNearby);
 			}
@@ -112,8 +180,8 @@ public class GameManager : MonoBehaviour
 		if (!IsGameRunning) return;
 
 		var cell = cells[c.x, c.y];
-		if (!cell.Component.Opened) {
-			if (cell.Component.Bomb) {
+		if (!cell.Data.Opened) {
+			if (cell.Data.Bomb) {
 				LoseGame(cell);
 			} else if (CalcBombsNearbyCount(c) > 0) {
 				cell.Open();
@@ -130,13 +198,13 @@ public class GameManager : MonoBehaviour
 		if (!IsGameRunning) return;
 
 		var cell = cells[c.x, c.y];
-		if (!cell.Component.Opened) {
-			if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
-				++MarksSet;
+		if (!cell.Data.Opened) {
+			if (!cell.Data.Marked && CellsMarked < Options.BombsCount) {
+				++CellsMarked;
 				cell.SetMarked(true);
-			} else if (cell.Component.Marked) {
+			} else if (cell.Data.Marked) {
 				cell.SetMarked(false);
-				--MarksSet;
+				--CellsMarked;
 			}
 		}
 	}
@@ -153,7 +221,7 @@ public class GameManager : MonoBehaviour
 		IsGameRunning = false;
 
 		foreach (var cell in cells) {
-			if (cell.Component.Bomb && !cell.Component.Opened) {
+			if (cell.Data.Bomb && !cell.Data.Opened) {
 				cell.Open();
 			}
 
@@ -163,7 +231,7 @@ public class GameManager : MonoBehaviour
 				cell.MakeBgRed();
 			}
 
-			if (!cell.Component.Bomb && cell.Component.Marked) {
+			if (!cell.Data.Bomb && cell.Data.Marked) {
 				cell.ShowMistakenMark();
 			}
 		}
@@ -182,7 +250,7 @@ public class GameManager : MonoBehaviour
 	{
 		Func<int, int, int> bombValue = (x, y) => {
 			var cell = GetCell(new Vector2Int(x, y));
-			return Convert.ToInt32(cell != null && cell.Component.Bomb);
+			return Convert.ToInt32(cell != null && cell.Data.Bomb);
 		};
 
 		int i = c.x;
@@ -208,8 +276,8 @@ public class GameManager : MonoBehaviour
 			var cell = GetCell(v);
 			if (
 				cell != null
-				&& !cell.Component.Bomb
-				&& !cell.Component.Opened
+				&& !cell.Data.Bomb
+				&& !cell.Data.Opened
 			) {
 				cellsQueue.Enqueue(v);
 			}
