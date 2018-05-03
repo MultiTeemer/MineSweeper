@@ -39,7 +39,7 @@ namespace Assets.Scripts
 		{
 			var text = gameObject.Get<Text>("Counter");
 			text.color = GetColorForCounter(count);
-			text.text = count.ToString();
+			text.text = count == 0 ? "*" : count.ToString();
 		}
 
 		public void MakeBgRed()
