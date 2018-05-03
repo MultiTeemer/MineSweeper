@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
 		for (int i = 0; i < size.x; ++i) {
 			for (int j = 0; j < size.y; ++j) {
 				var c = new Vector2Int(i, j);
-				var content = bombPositions.Contains(c) ? CellContent.Bomb : CellContent.FreeSpace;
+				var bomb = bombPositions.Contains(c);
 
 				var cellObj = Object.Instantiate(CellPrefab, Field.transform);
 				cellObj.transform.localPosition = shift + new Vector3(i * cellSize.x, j * cellSize.y);
@@ -92,7 +92,7 @@ public class GameManager : MonoBehaviour
 				var cell = cellObj.GetComponent<Cell>();
 				cells[i, j] = cell;
 
-				cell.Init(new CellComponent(content, VisualState.Closed, false));
+				cell.Init(new CellComponent(bomb, false, false));
 				cell.LeftClick += () => CellLeftClick(c);
 				cell.RightClick += () => CellRightClick(c);
 				cell.Opened += OnCellOpened;
@@ -112,8 +112,8 @@ public class GameManager : MonoBehaviour
 		if (!IsGameRunning) return;
 
 		var cell = cells[c.x, c.y];
-		if (cell.Component.VisualState == VisualState.Closed) {
-			if (cell.Component.Content == CellContent.Bomb) {
+		if (!cell.Component.Opened) {
+			if (cell.Component.Bomb) {
 				LoseGame(cell);
 			} else if (CalcBombsNearbyCount(c) > 0) {
 				cell.Open();
@@ -130,7 +130,7 @@ public class GameManager : MonoBehaviour
 		if (!IsGameRunning) return;
 
 		var cell = cells[c.x, c.y];
-		if (cell.Component.VisualState == VisualState.Closed) {
+		if (!cell.Component.Opened) {
 			if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
 				++MarksSet;
 				cell.SetMarked(true);
@@ -153,7 +153,7 @@ public class GameManager : MonoBehaviour
 		IsGameRunning = false;
 
 		foreach (var cell in cells) {
-			if (cell.Component.Content == CellContent.Bomb && cell.Component.VisualState == VisualState.Closed) {
+			if (cell.Component.Bomb && !cell.Component.Opened) {
 				cell.Open();
 			}
 
@@ -163,7 +163,7 @@ public class GameManager : MonoBehaviour
 				cell.MakeBgRed();
 			}
 
-			if (cell.Component.Content == CellContent.FreeSpace && cell.Component.Marked) {
+			if (!cell.Component.Bomb && cell.Component.Marked) {
 				cell.ShowMistakenMark();
 			}
 		}
@@ -182,7 +182,7 @@ public class GameManager : MonoBehaviour
 	{
 		Func<int, int, int> bombValue = (x, y) => {
 			var cell = GetCell(new Vector2Int(x, y));
-			return Convert.ToInt32(cell != null && cell.Component.Content == CellContent.Bomb);
+			return Convert.ToInt32(cell != null && cell.Component.Bomb);
 		};
 
 		int i = c.x;
@@ -208,8 +208,8 @@ public class GameManager : MonoBehaviour
 			var cell = GetCell(v);
 			if (
 				cell != null
-				&& cell.Component.Content == CellContent.FreeSpace
-				&& cell.Component.VisualState == VisualState.Closed
+				&& !cell.Component.Bomb
+				&& !cell.Component.Opened
 			) {
 				cellsQueue.Enqueue(v);
 			}

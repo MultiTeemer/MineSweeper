@@ -6,28 +6,16 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
-	enum CellContent
-	{
-		Bomb,
-		FreeSpace,
-	}
-
-	enum VisualState
-	{
-		Closed,
-		Opened,
-	}
-
 	class CellComponent
 	{
-		public CellContent Content;
-		public VisualState VisualState;
+		public bool Bomb;
+		public bool Opened;
 		public bool Marked;
 
-		public CellComponent(CellContent content, VisualState visualState, bool marked)
+		public CellComponent(bool bomb, bool opened, bool marked)
 		{
-			Content = content;
-			VisualState = visualState;
+			Bomb = bomb;
+			Opened = opened;
 			Marked = marked;
 		}
 	}
@@ -74,14 +62,14 @@ namespace Assets.Scripts
 
 		public void Open()
 		{
-			Component.VisualState = VisualState.Opened;
+			Component.Opened = true;;
 
 			Opened.SafeInvoke();
 		}
 
 		public void UpdateAppearance()
 		{
-			if (Component.VisualState == VisualState.Opened) {
+			if (Component.Opened) {
 				CustomizeOpenedCell();
 			} else {
 				CustomizedClosedCell();
@@ -99,7 +87,7 @@ namespace Assets.Scripts
 
 		private void CustomizeOpenedCell()
 		{
-			if (Component.Content == CellContent.Bomb) {
+			if (Component.Bomb) {
 				gameObject.Get("Bomb").SetActive(true);
 			} else {
 				gameObject.Get("Counter").SetActive(true);
