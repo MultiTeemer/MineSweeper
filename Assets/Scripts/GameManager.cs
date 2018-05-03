@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
 	{
 		Options = options;
 		IsGameRunning = true;
+		MarksSet = 0;
 
 		InitField(options.FieldSize, options.BombsCount);
 	}
