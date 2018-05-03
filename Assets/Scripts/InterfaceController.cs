@@ -1,8 +1,9 @@
-﻿using Assets.Scripts.Utils;
+﻿using Assets.Scripts.GameManagerStuff;
+using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Assets.Scripts.GameManagerStuff
+namespace Assets.Scripts
 {
 	public class InterfaceController : MonoBehaviour
 	{
