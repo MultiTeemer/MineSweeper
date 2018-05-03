@@ -132,6 +132,11 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	private void WinGame()
+	{
+		IsGameRunning = false;
+	}
+
 	private void LoseGame(Cell failReason)
 	{
 		foreach (var cell in cells) {
@@ -233,6 +238,10 @@ public class GameManager : MonoBehaviour
 	{
 		if (Input.GetKey(KeyCode.Escape)) {
 			QuitGame();
+		}
+
+		if (MarksSet == Options.BombsCount) {
+			WinGame();
 		}
 
 #if UNITY_EDITOR
