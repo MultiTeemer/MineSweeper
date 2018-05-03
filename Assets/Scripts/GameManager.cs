@@ -38,8 +38,8 @@ public class GameManager : MonoBehaviour
 
 	public void StopGame()
 	{
-		for (int i = 0; i < Options.FieldSize.X; ++i) {
-			for (int j = 0; j < Options.FieldSize.Y; ++j) {
+		for (int i = 0; i < Options.FieldSize.x; ++i) {
+			for (int j = 0; j < Options.FieldSize.y; ++j) {
 				cells[i, j] = null;
 			}
 		}
@@ -56,13 +56,13 @@ public class GameManager : MonoBehaviour
 		Application.Quit();
 	}
 
-	private void InitField(IntVector2 size, int bombsCount)
+	private void InitField(Vector2Int size, int bombsCount)
 	{
-		cells = new Cell[size.X, size.Y];
+		cells = new Cell[size.x, size.y];
 
-		var bombPositions = new List<IntVector2>(bombsCount);
+		var bombPositions = new List<Vector2Int>(bombsCount);
 		for (int i = 0; i < bombsCount; ++i) {
-			Func<IntVector2> getRandomPos = () => new IntVector2(Random.Range(0, size.X), Random.Range(0, size.Y));
+			Func<Vector2Int> getRandomPos = () => new Vector2Int(Random.Range(0, size.x), Random.Range(0, size.y));
 			var c = getRandomPos();
 			while (bombPositions.Contains(c)) {
 				c = getRandomPos();
@@ -71,11 +71,11 @@ public class GameManager : MonoBehaviour
 		}
 
 		var cellSize = Vector2Extensions.Multiply(CellPrefab.GetComponent<RectTransform>().sizeDelta, CellPrefab.GetComponent<RectTransform>().localScale);
-		var wholeFieldSize = new Vector2(cellSize.x * Options.FieldSize.X, cellSize.y * Options.FieldSize.Y);
+		var wholeFieldSize = new Vector2(cellSize.x * Options.FieldSize.x, cellSize.y * Options.FieldSize.y);
 		var shift = new Vector3(-wholeFieldSize.x, -wholeFieldSize.y) / 2;
-		for (int i = 0; i < size.X; ++i) {
-			for (int j = 0; j < size.Y; ++j) {
-				var c = new IntVector2(i, j);
+		for (int i = 0; i < size.x; ++i) {
+			for (int j = 0; j < size.y; ++j) {
+				var c = new Vector2Int(i, j);
 				var content = bombPositions.Contains(c) ? CellContent.Bomb : CellContent.FreeSpace;
 
 				var cellObj = Object.Instantiate(CellPrefab, Field.transform);
@@ -90,19 +90,19 @@ public class GameManager : MonoBehaviour
 			}
 		}
 
-		for (int i = 0; i < size.X; ++i) {
-			for (int j = 0; j < size.Y; j++) {
-				var bombsCountNearby = CalcBombsNearbyCount(new IntVector2(i, j));
+		for (int i = 0; i < size.x; ++i) {
+			for (int j = 0; j < size.y; j++) {
+				var bombsCountNearby = CalcBombsNearbyCount(new Vector2Int(i, j));
 				cells[i, j].SetNearbyBombsCounter(bombsCountNearby);
 			}
 		}
 	}
 
-	private void CellLeftClick(IntVector2 c)
+	private void CellLeftClick(Vector2Int c)
 	{
 		if (!IsGameRunning) return;
 
-		var cell = cells[c.X, c.Y];
+		var cell = cells[c.x, c.y];
 		if (cell.Component.VisualState == VisualState.Closed) {
 			if (cell.Component.Content == CellContent.Bomb) {
 				LoseGame(cell);
@@ -116,11 +116,11 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private void CellRightClick(IntVector2 c)
+	private void CellRightClick(Vector2Int c)
 	{
 		if (!IsGameRunning) return;
 
-		var cell = cells[c.X, c.Y];
+		var cell = cells[c.x, c.y];
 		if (cell.Component.VisualState == VisualState.Closed) {
 			if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
 				++MarksSet;
@@ -153,15 +153,15 @@ public class GameManager : MonoBehaviour
 		IsGameRunning = false;
 	}
 
-	private int CalcBombsNearbyCount(IntVector2 c)
+	private int CalcBombsNearbyCount(Vector2Int c)
 	{
 		Func<int, int, int> bombValue = (x, y) => {
-			var cell = GetCell(new IntVector2(x, y));
+			var cell = GetCell(new Vector2Int(x, y));
 			return Convert.ToInt32(cell != null && cell.Component.Content == CellContent.Bomb);
 		};
 
-		int i = c.X;
-		int j = c.Y;
+		int i = c.x;
+		int j = c.y;
 		var bombsCountNearby = bombValue(i - 1, j - 1)
 			+ bombValue(i, j - 1)
 			+ bombValue(i + 1, j - 1)
@@ -174,12 +174,12 @@ public class GameManager : MonoBehaviour
 		return bombsCountNearby;
 	}
 
-	private void OpenSafeArea(IntVector2 c)
+	private void OpenSafeArea(Vector2Int c)
 	{
-		var cellsQueue = new Queue<IntVector2>();
+		var cellsQueue = new Queue<Vector2Int>();
 		cellsQueue.Enqueue(c);
 
-		Action<IntVector2> pushIfSafe = (v) => {
+		Action<Vector2Int> pushIfSafe = (v) => {
 			var cell = GetCell(v);
 			if (
 				cell != null
@@ -189,11 +189,11 @@ public class GameManager : MonoBehaviour
 				cellsQueue.Enqueue(v);
 			}
 		};
-		var shifts = new List<IntVector2> {
-			new IntVector2(-1, 0),
-			new IntVector2(1, 0),
-			new IntVector2(0, -1),
-			new IntVector2(0, 1),
+		var shifts = new List<Vector2Int> {
+			new Vector2Int(-1, 0),
+			new Vector2Int(1, 0),
+			new Vector2Int(0, -1),
+			new Vector2Int(0, 1),
 		};
 		while (cellsQueue.Count > 0) {
 			var currCoord = cellsQueue.Dequeue();
@@ -209,13 +209,13 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private Cell GetCell(IntVector2 c)
+	private Cell GetCell(Vector2Int c)
 	{
-		return c.X >= 0
-				&& c.X < cells.GetLength(0)
-				&& c.Y >= 0
-				&& c.Y < cells.GetLength(1)
-			? cells[c.X, c.Y]
+		return c.x >= 0
+				&& c.x < cells.GetLength(0)
+				&& c.y >= 0
+				&& c.y < cells.GetLength(1)
+			? cells[c.x, c.y]
 			: null;
 	}
 

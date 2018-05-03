@@ -1,17 +1,18 @@
 ﻿using Assets.Scripts.Utils;
+using UnityEngine;
 
 namespace Assets.Scripts.GameManagerStuff
 {
 	public struct GameOptions
 	{
-		public IntVector2 FieldSize;
+		public Vector2Int FieldSize;
 		public int BombsCount;
 
-		public static GameOptions EasyMode = new GameOptions(new IntVector2(10), 10);
-		public static GameOptions MediumMode = new GameOptions(new IntVector2(20), 40);
-		public static GameOptions HardMode = new GameOptions(new IntVector2(30), 90);
+		public static GameOptions EasyMode = new GameOptions(new Vector2Int(10, 10), 10);
+		public static GameOptions MediumMode = new GameOptions(new Vector2Int(20, 20), 40);
+		public static GameOptions HardMode = new GameOptions(new Vector2Int(30, 30), 90);
 
-		public GameOptions(IntVector2 fieldSize, int bombsCount)
+		public GameOptions(Vector2Int fieldSize, int bombsCount)
 		{
 			FieldSize = fieldSize;
 			BombsCount = bombsCount;
