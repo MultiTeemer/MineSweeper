@@ -58,11 +58,11 @@ namespace Assets.Scripts
 			gameObject.Get("FailedBg").SetActive(true);
 		}
 
-		public void ToggleMark()
+		public void SetMarked(bool value)
 		{
-			Component.Marked = !Component.Marked;
+			Component.Marked = value;
 
-			gameObject.Get("Mark").SetActive(Component.Marked);
+			gameObject.Get("Mark").SetActive(value);
 		}
 
 		public void ShowMistakenMark()

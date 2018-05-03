@@ -124,9 +124,9 @@ public class GameManager : MonoBehaviour
 		if (cell.Component.VisualState == VisualState.Closed) {
 			if (!cell.Component.Marked && MarksSet < Options.BombsCount) {
 				++MarksSet;
-				cell.ToggleMark();
+				cell.SetMarked(true);
 			} else if (cell.Component.Marked) {
-				cell.ToggleMark();
+				cell.SetMarked(false);
 				--MarksSet;
 			}
 		}
@@ -234,5 +234,11 @@ public class GameManager : MonoBehaviour
 		if (Input.GetKey(KeyCode.Escape)) {
 			QuitGame();
 		}
+
+#if UNITY_EDITOR
+		if (Input.GetKey(KeyCode.W) && IsGameRunning) {
+			Cheats.LastTurnToWin(cells);
+		}
+#endif
 	}
 }
