@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using Assets.Scripts.Utils;
+﻿using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -78,18 +77,18 @@ namespace Assets.Scripts.GameManagerStuff
 
 		private void InitSavedGamesList()
 		{
-			var scrollView = LoadGameCanvas.gameObject.Get<RectTransform>("SavedGames");
-			foreach (Transform c in scrollView.transform) {
+			var scrollContent = LoadGameCanvas.gameObject.Get<RectTransform>("SavedGames");
+			foreach (Transform c in scrollContent.transform) {
 				Destroy(c.gameObject);
 			}
 
 			var saves = LoadSaveSystem.GetSavedGames();
-			var cnt = 0;
+			var i = 0;
 			var size = SavedGamePrefab.GetComponent<RectTransform>().sizeDelta;
 			foreach (var path in saves) {
-				var btn = Object.Instantiate(SavedGamePrefab, scrollView.transform);
+				var btn = Object.Instantiate(SavedGamePrefab, scrollContent.transform);
 				btn.Get<Text>("Text").text = path;
-				btn.transform.localPosition = new Vector3(0, -cnt++ * size.y);
+				btn.transform.localPosition = new Vector3(0, -i++ * size.y);
 				var locPath = path;
 				btn.GetComponent<Button>().onClick.AddListener(() => {
 					GameManager.Instance.LoadGame(locPath);
