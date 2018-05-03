@@ -10,37 +10,39 @@ namespace Assets.Scripts.GameManagerStuff
 		public static void LastTurnToWin(Cell[,] cells)
 		{
 			var opts = GameManager.Instance.Options;
-			var bombsPos = new List<Vector2Int>(opts.BombsCount);
+			var safeCells = new List<Vector2Int>(opts.BombsCount);
 			for (int i = 0; i < opts.FieldSize.x; ++i) {
 				for (int j = 0; j < opts.FieldSize.y; ++j) {
-					if (cells[i, j].Component.Content == CellContent.Bomb) {
-						bombsPos.Add(new Vector2Int(i, j));
+					if (cells[i, j].Component.Content == CellContent.FreeSpace) {
+						safeCells.Add(new Vector2Int(i, j));
 					}
 				}
 			}
 
-			var lastBombToTakePos = bombsPos[Random.Range(0, opts.BombsCount)];
+			var lastSafeCell = safeCells[Random.Range(0, safeCells.Count)];
 			for (int i = 0; i < opts.FieldSize.x; ++i) {
 				for (int j = 0; j < opts.FieldSize.y; ++j) {
-					cells[i, j].SetMarked(false);
+					var cell = cells[i, j];
+					cell.SetMarked(false);
 
-					if (i == lastBombToTakePos.x && j == lastBombToTakePos.y) {
-						cells[i, j].Component.VisualState = VisualState.Closed;
-						cells[i, j].SetMarked(false);
+					if (i == lastSafeCell.x && j == lastSafeCell.y) {
+						cell.Component.VisualState = VisualState.Closed;
+						cell.SetMarked(false);
 					} else {
-						if (cells[i, j].Component.Content == CellContent.Bomb) {
-							cells[i, j].SetMarked(true);
+						if (cell.Component.Content == CellContent.Bomb) {
+							cell.SetMarked(true);
 						} else {
-							cells[i, j].Open();
+							cell.Open();
 						}
 					}
 
-					cells[i, j].UpdateAppearance();
+					cell.UpdateAppearance();
 
 				}
 			}
 
-			GameManager.Instance.MarksSet = opts.BombsCount - 1;
+			GameManager.Instance.MarksSet = opts.BombsCount;
+			GameManager.Instance.CellsOpened = opts.FieldSize.x * opts.FieldSize.y - opts.BombsCount - 1;
 		}
 	}
 }

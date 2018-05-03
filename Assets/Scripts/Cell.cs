@@ -38,6 +38,7 @@ namespace Assets.Scripts
 
 		public event Action LeftClick;
 		public event Action RightClick;
+		public event Action Opened;
 
 		public void Init(CellComponent component)
 		{
@@ -74,6 +75,8 @@ namespace Assets.Scripts
 		public void Open()
 		{
 			Component.VisualState = VisualState.Opened;
+
+			Opened.SafeInvoke();
 		}
 
 		public void UpdateAppearance()
@@ -108,6 +111,8 @@ namespace Assets.Scripts
 		private void CustomizedClosedCell()
 		{
 			gameObject.Get("Mark").SetActive(Component.Marked);
+			gameObject.Get("Counter").SetActive(false);
+			gameObject.Get("Bomb").SetActive(false);
 		}
 
 		private static Color GetColorForCounter(int count)

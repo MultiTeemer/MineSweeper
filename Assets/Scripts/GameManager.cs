@@ -24,6 +24,9 @@ public class GameManager : MonoBehaviour
 	[HideInInspector]
 	public int MarksSet;
 
+	[HideInInspector]
+	public int CellsOpened;
+
 	private Cell[,] cells;
 
 	public static GameManager Instance { get; private set; }
@@ -36,6 +39,7 @@ public class GameManager : MonoBehaviour
 		Options = options;
 		IsGameRunning = true;
 		MarksSet = 0;
+		CellsOpened = 0;
 
 		InitField(options.FieldSize, options.BombsCount);
 	}
@@ -91,6 +95,7 @@ public class GameManager : MonoBehaviour
 				cell.Init(new CellComponent(content, VisualState.Closed, false));
 				cell.LeftClick += () => CellLeftClick(c);
 				cell.RightClick += () => CellRightClick(c);
+				cell.Opened += OnCellOpened;
 			}
 		}
 
@@ -145,25 +150,32 @@ public class GameManager : MonoBehaviour
 
 	private void LoseGame(Cell failReason)
 	{
-		foreach (var cell in cells) {
-			if (cell == failReason) {
-				cell.MakeBgRed();
-			}
+		IsGameRunning = false;
 
+		foreach (var cell in cells) {
 			if (cell.Component.Content == CellContent.Bomb && cell.Component.VisualState == VisualState.Closed) {
 				cell.Open();
+			}
+
+			cell.UpdateAppearance();
+
+			if (cell == failReason) {
+				cell.MakeBgRed();
 			}
 
 			if (cell.Component.Content == CellContent.FreeSpace && cell.Component.Marked) {
 				cell.ShowMistakenMark();
 			}
-
-			cell.UpdateAppearance();
 		}
 
-		IsGameRunning = false;
-
 		GameLost.SafeInvoke();
+	}
+
+	private void OnCellOpened()
+	{
+		if (IsGameRunning) {
+			++CellsOpened;
+		}
 	}
 
 	private int CalcBombsNearbyCount(Vector2Int c)
@@ -249,7 +261,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		if (IsGameRunning) {
-			if (MarksSet == Options.BombsCount) {
+			if (CellsOpened == Options.FieldSize.x * Options.FieldSize.y - Options.BombsCount) {
 				WinGame();
 			}
 
