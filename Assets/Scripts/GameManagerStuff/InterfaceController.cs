@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Utils;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.GameManagerStuff
 {
@@ -62,6 +65,10 @@ namespace Assets.Scripts.GameManagerStuff
 		{
 			SwitchTo(GameCanvas);
 
+			GameCanvas.gameObject.Get<Button>("SaveGameBtn").interactable = true;
+			GameCanvas.gameObject.Get("WinMessage").SetActive(false);
+			GameCanvas.gameObject.Get("LoseMessage").SetActive(false);
+
 			GameManager.Instance.StartGame(options);
 		}
 
@@ -74,12 +81,27 @@ namespace Assets.Scripts.GameManagerStuff
 			ShowCanvas(canvas);
 		}
 
+		private void OnGameWon()
+		{
+			GameCanvas.gameObject.Get<Button>("SaveGameBtn").interactable = false;
+			GameCanvas.gameObject.Get("WinMessage").SetActive(true);
+		}
+
+		private void OnGameLost()
+		{
+			GameCanvas.gameObject.Get<Button>("SaveGameBtn").interactable = false;
+			GameCanvas.gameObject.Get("LoseMessage").SetActive(true);
+		}
+
 		private void Start()
 		{
 			HideCanvas(GameCanvas);
 			HideCanvas(ChooseGameModeCanvas);
 
 			ShowCanvas(MainMenuCanvas);
+
+			GameManager.Instance.GameWon += OnGameWon;
+			GameManager.Instance.GameLost += OnGameLost;
 		}
 
 		private void Awake()

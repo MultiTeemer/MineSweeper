@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
 
 	public static GameManager Instance { get; private set; }
 
+	public event Action GameWon;
+	public event Action GameLost;
+
 	public void StartGame(GameOptions options)
 	{
 		Options = options;
@@ -136,6 +139,8 @@ public class GameManager : MonoBehaviour
 	private void WinGame()
 	{
 		IsGameRunning = false;
+
+		GameWon.SafeInvoke();
 	}
 
 	private void LoseGame(Cell failReason)
@@ -157,6 +162,8 @@ public class GameManager : MonoBehaviour
 		}
 
 		IsGameRunning = false;
+
+		GameLost.SafeInvoke();
 	}
 
 	private int CalcBombsNearbyCount(Vector2Int c)
@@ -241,14 +248,16 @@ public class GameManager : MonoBehaviour
 			QuitGame();
 		}
 
-		if (MarksSet == Options.BombsCount) {
-			WinGame();
-		}
+		if (IsGameRunning) {
+			if (MarksSet == Options.BombsCount) {
+				WinGame();
+			}
 
 #if UNITY_EDITOR
-		if (Input.GetKey(KeyCode.W) && IsGameRunning) {
-			Cheats.LastTurnToWin(cells);
-		}
+			if (Input.GetKey(KeyCode.W)) {
+				Cheats.LastTurnToWin(cells);
+			}
 #endif
+		}
 	}
 }
